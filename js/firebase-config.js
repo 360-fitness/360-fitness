@@ -7,7 +7,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth }        from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getFirestore }   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { getStorage }     from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
 // ⚠️  REPLACE THIS WITH YOUR FIREBASE CONFIG  ⚠️
 const firebaseConfig = {
@@ -20,9 +19,8 @@ const firebaseConfig = {
   measurementId: "G-EWRKQW0FZF"
 };
 
-const app     = initializeApp(firebaseConfig);
-const auth    = getAuth(app);
-const db      = getFirestore(app);
-const storage = getStorage(app);
+const app  = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db   = getFirestore(app);
 
-export { auth, db, storage };
+export { auth, db };
