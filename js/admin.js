@@ -393,14 +393,15 @@ window.generateSessions = async function() {
     else if (dow === 6)       templates = SESSION_TEMPLATES.saturday;
     else continue; // Sunday — skip
 
+    // Fetch all sessions for this date once (avoids compound index requirement)
+    const dateSnap = await getDocs(query(
+      collection(db, "sessions"),
+      where("date", "==", dateStr)
+    ));
+    const existingTimes = new Set(dateSnap.docs.map(d => d.data().time));
+
     for (const t of templates) {
-      // Check if session already exists for this date+time
-      const existing = await getDocs(query(
-        collection(db, "sessions"),
-        where("date", "==", dateStr),
-        where("time", "==", t.time)
-      ));
-      if (!existing.empty) { skipped++; continue; }
+      if (existingTimes.has(t.time)) { skipped++; continue; }
 
       await addDoc(collection(db, "sessions"), {
         name:         t.name,
