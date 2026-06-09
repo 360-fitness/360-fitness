@@ -185,18 +185,91 @@ window.adminCancelBooking = async function(bookingId, sessionId, isWaitlist) {
   loadAdminBookings();
 };
 
+// ---- Gym Schedule (fixed time slots) ----
+// 0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat
+const GYM_SCHEDULE = {
+  "1": [ // Monday
+    { time: "05:00", duration: 60 },
+    { time: "16:00", duration: 60 },
+    { time: "17:00", duration: 60 },
+    { time: "18:00", duration: 60 },
+    { time: "19:00", duration: 60 }
+  ],
+  "2": [ // Tuesday
+    { time: "05:00", duration: 60 },
+    { time: "16:00", duration: 60 },
+    { time: "17:00", duration: 60 },
+    { time: "18:00", duration: 60 },
+    { time: "19:00", duration: 60 }
+  ],
+  "3": [ // Wednesday
+    { time: "05:00", duration: 60 },
+    { time: "16:00", duration: 60 },
+    { time: "17:00", duration: 60 },
+    { time: "18:00", duration: 60 },
+    { time: "19:00", duration: 60 }
+  ],
+  "4": [ // Thursday
+    { time: "05:00", duration: 60 },
+    { time: "16:00", duration: 60 },
+    { time: "17:00", duration: 60 },
+    { time: "18:00", duration: 60 },
+    { time: "19:00", duration: 60 }
+  ],
+  "5": [ // Friday
+    { time: "05:00", duration: 60 },
+    { time: "16:00", duration: 60 }
+  ],
+  "6": [ // Saturday – Open Gym only
+    { time: "08:00", duration: 60, label: "Open Gym" }
+  ]
+  // Sunday (0) – closed
+};
+
+function updateTimeSlots(dateStr) {
+  const slotSelect = document.getElementById("sessTimeSlot");
+  if (!slotSelect) return;
+  slotSelect.innerHTML = "";
+  if (!dateStr) return;
+  const dow = new Date(dateStr + "T00:00:00").getDay().toString();
+  const slots = GYM_SCHEDULE[dow];
+  if (!slots || !slots.length) {
+    slotSelect.innerHTML = `<option value="">Closed – no sessions</option>`;
+    document.getElementById("sessDuration").value = "";
+    return;
+  }
+  slots.forEach(s => {
+    const opt = document.createElement("option");
+    opt.value = s.time;
+    opt.textContent = s.label ? `${s.time} – ${s.label}` : s.time;
+    opt.dataset.duration = s.duration;
+    opt.dataset.label    = s.label || "";
+    slotSelect.appendChild(opt);
+  });
+  slotSelect.onchange = () => {
+    const sel = slotSelect.selectedOptions[0];
+    document.getElementById("sessDuration").value = sel?.dataset.duration || "60";
+    if (sel?.dataset.label && !document.getElementById("editSessionId").value) {
+      document.getElementById("sessName").value = sel.dataset.label;
+    }
+  };
+  slotSelect.dispatchEvent(new Event("change"));
+}
+
 // ---- Add/Edit Session Modal ----
 window.openAddSessionModal = function() {
   document.getElementById("sessionFormTitle").textContent = "Add Session";
   document.getElementById("editSessionId").value = "";
   document.getElementById("sessName").value     = "";
-  document.getElementById("sessDate").value     = new Date().toISOString().split("T")[0];
-  document.getElementById("sessTime").value     = "06:00";
+  const todayStr = new Date().toISOString().split("T")[0];
+  document.getElementById("sessDate").value     = todayStr;
   document.getElementById("sessDuration").value = "60";
   document.getElementById("sessMax").value      = "15";
   document.getElementById("sessTrainer").value  = "";
   document.getElementById("sessType").value     = "hiit";
   document.getElementById("sessFormMsg").classList.add("hidden");
+  updateTimeSlots(todayStr);
+  document.getElementById("sessDate").onchange = (e) => updateTimeSlots(e.target.value);
   document.getElementById("sessionFormModal").classList.remove("hidden");
 };
 
@@ -208,12 +281,20 @@ window.editSession = async function(id) {
   document.getElementById("editSessionId").value = id;
   document.getElementById("sessName").value      = s.name;
   document.getElementById("sessDate").value      = s.date;
-  document.getElementById("sessTime").value      = s.time;
   document.getElementById("sessDuration").value  = s.duration || 60;
   document.getElementById("sessMax").value       = s.maxMembers || 15;
   document.getElementById("sessTrainer").value   = s.trainer || "";
   document.getElementById("sessType").value      = s.type || "hiit";
   document.getElementById("sessFormMsg").classList.add("hidden");
+  // Populate time slots for that date and pre-select saved time
+  updateTimeSlots(s.date);
+  const slotSelect = document.getElementById("sessTimeSlot");
+  if (slotSelect) {
+    slotSelect.value = s.time;
+    slotSelect.dispatchEvent(new Event("change"));
+    document.getElementById("sessName").value = s.name; // restore after change event
+  }
+  document.getElementById("sessDate").onchange = (e) => updateTimeSlots(e.target.value);
   document.getElementById("sessionFormModal").classList.remove("hidden");
 };
 
@@ -222,18 +303,19 @@ window.closeSessionModal = function() {
 };
 
 window.saveSession = async function() {
-  const editId   = document.getElementById("editSessionId").value;
-  const msgEl    = document.getElementById("sessFormMsg");
-  const name     = document.getElementById("sessName").value.trim();
-  const date     = document.getElementById("sessDate").value;
-  const time     = document.getElementById("sessTime").value;
-  const duration = parseInt(document.getElementById("sessDuration").value);
+  const editId     = document.getElementById("editSessionId").value;
+  const msgEl      = document.getElementById("sessFormMsg");
+  const name       = document.getElementById("sessName").value.trim();
+  const date       = document.getElementById("sessDate").value;
+  const slotSelect = document.getElementById("sessTimeSlot");
+  const time       = slotSelect ? slotSelect.value : "";
+  const duration   = parseInt(document.getElementById("sessDuration").value);
   const maxMembers = parseInt(document.getElementById("sessMax").value);
-  const trainer  = document.getElementById("sessTrainer").value.trim();
-  const type     = document.getElementById("sessType").value;
+  const trainer    = document.getElementById("sessTrainer").value.trim();
+  const type       = document.getElementById("sessType").value;
 
   if (!name || !date || !time) {
-    msgEl.textContent = "Name, date and time are required.";
+    msgEl.textContent = "Name, date and time slot are required.";
     msgEl.className   = "form-msg error";
     msgEl.classList.remove("hidden");
     return;
