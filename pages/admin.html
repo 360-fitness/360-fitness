@@ -88,6 +88,26 @@
 
     <!-- Sessions Panel -->
     <div id="adminSessions" class="admin-panel">
+
+      <!-- Auto-Generate Card -->
+      <div class="section-card" style="margin-bottom:1rem">
+        <div class="section-header">
+          <h3>🗓 Auto-Generate Schedule</h3>
+        </div>
+        <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:1rem">
+          Generates all sessions based on the fixed gym schedule (Mon–Thu 5 slots, Fri 2 slots, Sat Open Gym). Already-existing sessions are skipped.
+        </p>
+        <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap">
+          <label style="color:var(--text-secondary);font-size:0.875rem">Weeks ahead:</label>
+          <input type="number" id="generateWeeks" value="4" min="1" max="12"
+            style="width:70px;background:var(--dark-3);border:1px solid var(--dark-5);color:var(--text-primary);padding:8px;border-radius:6px;font-size:0.875rem" />
+          <button id="generateBtn" class="btn-primary" style="width:auto;padding:10px 24px" onclick="generateSessions()">
+            ⚡ Generate Sessions
+          </button>
+        </div>
+      </div>
+
+      <!-- Manual Add Card -->
       <div class="section-card">
         <div class="section-header">
           <h3>Manage Sessions</h3>
