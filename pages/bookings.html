@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Book a Session – 360° Fitness</title>
+  <link rel="stylesheet" href="../css/main.css" />
+  <link rel="stylesheet" href="../css/app.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+</head>
+<body class="app-page">
+
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="sidebar-logo">
+        <img src="../assets/logo.png" alt="Logo" onerror="this.style.display='none'" />
+        <div class="sidebar-logo-text">
+          <span class="s-logo-big">360°</span>
+          <span class="s-logo-small">FITNESS</span>
+        </div>
+      </div>
+    </div>
+    <ul class="nav-links">
+      <li><a href="dashboard.html" class="nav-link"><span class="nav-icon">⊞</span> Dashboard</a></li>
+      <li><a href="bookings.html" class="nav-link active"><span class="nav-icon">📅</span> Book a Session</a></li>
+      <li><a href="my-bookings.html" class="nav-link"><span class="nav-icon">🗓</span> My Bookings</a></li>
+      <li><a href="profile.html" class="nav-link"><span class="nav-icon">👤</span> Profile</a></li>
+      <li><a href="membership-card.html" class="nav-link"><span class="nav-icon">🪪</span> My Card</a></li>
+      <li id="adminNavItem" class="hidden"><a href="admin.html" class="nav-link admin-link"><span class="nav-icon">⚙️</span> Admin</a></li>
+    </ul>
+    <div class="sidebar-footer">
+      <div class="sidebar-user" id="sidebarUser"></div>
+      <button class="btn-logout" onclick="handleLogout()">Sign Out</button>
+    </div>
+  </nav>
+
+  <header class="mobile-header">
+    <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+    <span class="mobile-title">Book a Session</span>
+    <div class="mobile-avatar" id="mobileAvatar"></div>
+  </header>
+  <div class="sidebar-overlay hidden" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+  <main class="main-content">
+    <div class="page-header">
+      <h2 class="page-title">Book a Session</h2>
+      <p class="page-sub">Choose a date and available time slot</p>
+    </div>
+
+    <!-- Date Picker Row -->
+    <div class="date-scroller" id="dateScroller"></div>
+
+    <!-- Slots for Selected Date -->
+    <section class="section-card">
+      <div class="section-header">
+        <h3 id="slotsDateLabel">Today's Sessions</h3>
+      </div>
+      <div id="slotsList" class="slots-grid">
+        <div class="loading-spinner"></div>
+      </div>
+    </section>
+
+    <!-- Session Detail Modal -->
+    <div class="modal hidden" id="sessionModal">
+      <div class="modal-backdrop" onclick="closeModal()"></div>
+      <div class="modal-box">
+        <button class="modal-close" onclick="closeModal()">✕</button>
+        <h3 id="modalTitle">Session Details</h3>
+        <div class="modal-meta" id="modalMeta"></div>
+        <div class="modal-section">
+          <h4>Booked Members (<span id="modalBookedCount">0</span>/<span id="modalMaxCount">0</span>)</h4>
+          <ul class="members-list" id="modalMembersList"></ul>
+        </div>
+        <div class="modal-section" id="waitlistSection">
+          <h4>Waitlist (<span id="modalWaitlistCount">0</span>)</h4>
+          <ul class="members-list" id="modalWaitlist"></ul>
+        </div>
+        <div class="modal-actions" id="modalActions"></div>
+      </div>
+    </div>
+  </main>
+
+  <script type="module" src="../js/firebase-config.js"></script>
+  <script type="module" src="../js/app.js"></script>
+  <script type="module" src="../js/bookings.js"></script>
+</body>
+</html>

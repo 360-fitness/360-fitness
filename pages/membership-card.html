@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Card – 360° Fitness</title>
+  <link rel="stylesheet" href="../css/main.css" />
+  <link rel="stylesheet" href="../css/app.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <!-- QR Code library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body class="app-page">
+
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="sidebar-logo">
+        <img src="../assets/logo.png" alt="Logo" onerror="this.style.display='none'" />
+        <div class="sidebar-logo-text">
+          <span class="s-logo-big">360°</span>
+          <span class="s-logo-small">FITNESS</span>
+        </div>
+      </div>
+    </div>
+    <ul class="nav-links">
+      <li><a href="dashboard.html" class="nav-link"><span class="nav-icon">⊞</span> Dashboard</a></li>
+      <li><a href="bookings.html" class="nav-link"><span class="nav-icon">📅</span> Book a Session</a></li>
+      <li><a href="my-bookings.html" class="nav-link"><span class="nav-icon">🗓</span> My Bookings</a></li>
+      <li><a href="profile.html" class="nav-link"><span class="nav-icon">👤</span> Profile</a></li>
+      <li><a href="membership-card.html" class="nav-link active"><span class="nav-icon">🪪</span> My Card</a></li>
+      <li id="adminNavItem" class="hidden"><a href="admin.html" class="nav-link admin-link"><span class="nav-icon">⚙️</span> Admin</a></li>
+    </ul>
+    <div class="sidebar-footer">
+      <div class="sidebar-user" id="sidebarUser"></div>
+      <button class="btn-logout" onclick="handleLogout()">Sign Out</button>
+    </div>
+  </nav>
+
+  <header class="mobile-header">
+    <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+    <span class="mobile-title">My Card</span>
+    <div class="mobile-avatar" id="mobileAvatar"></div>
+  </header>
+  <div class="sidebar-overlay hidden" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+  <main class="main-content">
+    <div class="page-header">
+      <h2 class="page-title">Membership Card</h2>
+      <p class="page-sub">Show this at reception to check in</p>
+    </div>
+
+    <div class="card-wrapper">
+      <!-- The actual membership card -->
+      <div class="membership-card-display" id="membershipCardDisplay">
+        <div class="mc-top">
+          <div class="mc-logo">
+            <span class="mc-logo-big">360°</span>
+            <span class="mc-logo-small">FITNESS</span>
+          </div>
+          <div class="mc-member-type" id="mcMemberType">Member</div>
+        </div>
+        <div class="mc-avatar-row">
+          <div class="mc-avatar" id="mcAvatar">?</div>
+          <div class="mc-info">
+            <div class="mc-name" id="mcName">Loading...</div>
+            <div class="mc-detail" id="mcEmail"></div>
+            <div class="mc-detail" id="mcPhone"></div>
+            <div class="mc-since">Member since <span id="mcSince">–</span></div>
+          </div>
+        </div>
+        <div class="mc-qr" id="mcQrCode"></div>
+        <div class="mc-id" id="mcId"></div>
+        <div class="mc-tagline">Work Hard. Stay Humble.</div>
+      </div>
+
+      <button class="btn-secondary" onclick="window.print()">🖨️ Print Card</button>
+    </div>
+  </main>
+
+  <script type="module" src="../js/firebase-config.js"></script>
+  <script type="module" src="../js/app.js"></script>
+  <script type="module" src="../js/membership-card.js"></script>
+</body>
+</html>

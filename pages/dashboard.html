@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard – 360° Fitness</title>
+  <link rel="stylesheet" href="../css/main.css" />
+  <link rel="stylesheet" href="../css/app.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+</head>
+<body class="app-page">
+
+  <!-- Sidebar Navigation -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="sidebar-logo">
+        <img src="../assets/logo.png" alt="Logo" onerror="this.style.display='none'" />
+        <div class="sidebar-logo-text">
+          <span class="s-logo-big">360°</span>
+          <span class="s-logo-small">FITNESS</span>
+        </div>
+      </div>
+    </div>
+    <ul class="nav-links">
+      <li><a href="dashboard.html" class="nav-link active"><span class="nav-icon">⊞</span> Dashboard</a></li>
+      <li><a href="bookings.html" class="nav-link"><span class="nav-icon">📅</span> Book a Session</a></li>
+      <li><a href="my-bookings.html" class="nav-link"><span class="nav-icon">🗓</span> My Bookings</a></li>
+      <li><a href="profile.html" class="nav-link"><span class="nav-icon">👤</span> Profile</a></li>
+      <li><a href="membership-card.html" class="nav-link"><span class="nav-icon">🪪</span> My Card</a></li>
+      <li id="adminNavItem" class="hidden"><a href="admin.html" class="nav-link admin-link"><span class="nav-icon">⚙️</span> Admin</a></li>
+    </ul>
+    <div class="sidebar-footer">
+      <div class="sidebar-user" id="sidebarUser"></div>
+      <button class="btn-logout" onclick="handleLogout()">Sign Out</button>
+    </div>
+  </nav>
+
+  <!-- Mobile Header -->
+  <header class="mobile-header">
+    <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+    <span class="mobile-title">360° Fitness</span>
+    <div class="mobile-avatar" id="mobileAvatar"></div>
+  </header>
+  <div class="sidebar-overlay hidden" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <div class="page-header">
+      <h2 class="page-title">Welcome back, <span id="userFirstName">Athlete</span> 💪</h2>
+      <p class="page-sub">Here's your fitness overview</p>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="stats-grid" id="statsGrid">
+      <div class="stat-card">
+        <div class="stat-icon gold">📅</div>
+        <div class="stat-info">
+          <span class="stat-num" id="statUpcoming">–</span>
+          <span class="stat-label">Upcoming Sessions</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">✅</div>
+        <div class="stat-info">
+          <span class="stat-num" id="statCompleted">–</span>
+          <span class="stat-label">Sessions Attended</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">⏳</div>
+        <div class="stat-info">
+          <span class="stat-num" id="statWaiting">–</span>
+          <span class="stat-label">On Waitlist</span>
+        </div>
+      </div>
+      <div class="stat-card admin-only hidden" id="adminStatsCard">
+        <div class="stat-icon gold">👥</div>
+        <div class="stat-info">
+          <span class="stat-num" id="statMembers">–</span>
+          <span class="stat-label">Total Members</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Upcoming Bookings -->
+    <section class="section-card">
+      <div class="section-header">
+        <h3>Upcoming Sessions</h3>
+        <a href="bookings.html" class="btn-secondary-sm">Book More</a>
+      </div>
+      <div id="upcomingList" class="booking-list">
+        <div class="empty-state">No upcoming sessions. <a href="bookings.html">Book one now!</a></div>
+      </div>
+    </section>
+
+    <!-- Next Available Slots -->
+    <section class="section-card">
+      <div class="section-header">
+        <h3>Available Today</h3>
+        <a href="bookings.html" class="btn-secondary-sm">View All</a>
+      </div>
+      <div id="todaySlots" class="slot-list">
+        <div class="empty-state">No sessions scheduled today.</div>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="../js/firebase-config.js"></script>
+  <script type="module" src="../js/app.js"></script>
+  <script type="module" src="../js/dashboard.js"></script>
+</body>
+</html>
