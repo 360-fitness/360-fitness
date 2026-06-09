@@ -346,3 +346,81 @@ window.deleteSession = async function(id) {
   showToast("Session deleted.", "info");
   loadAdminSessions();
 };
+
+// ---- Auto-Generate Sessions ----
+const SESSION_TEMPLATES = {
+  // Mon–Thu (1,2,3,4)
+  weekday: [
+    { time: "05:00", name: "Early Morning Training", type: "hiit",     duration: 60, maxMembers: 15 },
+    { time: "16:00", name: "Afternoon Training",     type: "strength", duration: 60, maxMembers: 15 },
+    { time: "17:00", name: "Evening Training",       type: "hiit",     duration: 60, maxMembers: 15 },
+    { time: "18:00", name: "Evening Training",       type: "strength", duration: 60, maxMembers: 15 },
+    { time: "19:00", name: "Evening Training",       type: "cardio",   duration: 60, maxMembers: 15 },
+  ],
+  // Friday (5)
+  friday: [
+    { time: "05:00", name: "Early Morning Training", type: "hiit",     duration: 60, maxMembers: 15 },
+    { time: "16:00", name: "Afternoon Training",     type: "strength", duration: 60, maxMembers: 15 },
+  ],
+  // Saturday (6)
+  saturday: [
+    { time: "08:00", name: "Open Gym",               type: "open",     duration: 60, maxMembers: 15 },
+  ]
+};
+
+window.generateSessions = async function() {
+  const weeksInput = document.getElementById("generateWeeks");
+  const weeks = parseInt(weeksInput?.value || "4");
+  if (!confirm(`This will generate sessions for the next ${weeks} weeks. Existing sessions on those dates will be skipped. Continue?`)) return;
+
+  const btn = document.getElementById("generateBtn");
+  btn.disabled = true;
+  btn.textContent = "Generating...";
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  let created = 0, skipped = 0;
+
+  for (let d = 0; d < weeks * 7; d++) {
+    const date = new Date(today);
+    date.setDate(today.getDate() + d);
+    const dow     = date.getDay(); // 0=Sun,1=Mon,...,6=Sat
+    const dateStr = date.toISOString().split("T")[0];
+
+    let templates = null;
+    if (dow >= 1 && dow <= 4) templates = SESSION_TEMPLATES.weekday;
+    else if (dow === 5)       templates = SESSION_TEMPLATES.friday;
+    else if (dow === 6)       templates = SESSION_TEMPLATES.saturday;
+    else continue; // Sunday — skip
+
+    for (const t of templates) {
+      // Check if session already exists for this date+time
+      const existing = await getDocs(query(
+        collection(db, "sessions"),
+        where("date", "==", dateStr),
+        where("time", "==", t.time)
+      ));
+      if (!existing.empty) { skipped++; continue; }
+
+      await addDoc(collection(db, "sessions"), {
+        name:         t.name,
+        date:         dateStr,
+        time:         t.time,
+        duration:     t.duration,
+        maxMembers:   t.maxMembers,
+        type:         t.type,
+        trainer:      "",
+        bookedCount:  0,
+        waitlistCount: 0,
+        createdAt:    serverTimestamp()
+      });
+      created++;
+    }
+  }
+
+  btn.disabled = false;
+  btn.textContent = "Generate Sessions";
+  showToast(`✅ Done! ${created} sessions created, ${skipped} already existed.`, "success");
+  loadAdminSessions();
+  loadAdminStats();
+};
