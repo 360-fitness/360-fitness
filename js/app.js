@@ -43,14 +43,10 @@ function setupNav(profile) {
     sidebarUser.textContent = `${profile.firstName} ${profile.lastName}`;
   }
 
-  // Mobile avatar
+  // Mobile avatar — initials only
   const mobileAvatar = document.getElementById("mobileAvatar");
   if (mobileAvatar) {
-    if (profile.avatarUrl) {
-      mobileAvatar.innerHTML = `<img src="${profile.avatarUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%" />`;
-    } else {
-      mobileAvatar.textContent = (profile.firstName?.[0] || "?") + (profile.lastName?.[0] || "");
-    }
+    mobileAvatar.textContent = (profile.firstName?.[0] || "?") + (profile.lastName?.[0] || "");
   }
 }
 
@@ -107,12 +103,6 @@ export function formatTimestamp(ts) {
 }
 export function initials(profile) {
   return ((profile.firstName?.[0] || "") + (profile.lastName?.[0] || "")).toUpperCase() || "?";
-}
-export function avatarHTML(profile, size = 36) {
-  if (profile.avatarUrl) {
-    return `<img src="${profile.avatarUrl}" style="width:${size}px;height:${size}px;border-radius:50%;object-fit:cover" />`;
-  }
-  return initials(profile);
 }
 
 window.closeModal = function() {
