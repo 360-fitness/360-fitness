@@ -6,80 +6,14 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   sendPasswordResetEmail,
-  onAuthStateChanged,
-  GoogleAuthProvider,
-  signInWithRedirect,
-  getRedirectResult
+  onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import {
   doc, setDoc, getDoc, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-// ---- Helpers (defined first so everything below can use them) ----
-function showError(msg, isSuccess = false) {
-  const el = document.getElementById("authError");
-  el.textContent = msg;
-  el.style.color = isSuccess ? "var(--success)" : "";
-  el.classList.remove("hidden");
-}
-function clearError() {
-  document.getElementById("authError").classList.add("hidden");
-}
-function showLoader(show) {
-  document.getElementById("authLoader").classList.toggle("hidden", !show);
-}
-function friendlyError(code) {
-  const map = {
-    "auth/user-not-found":        "No account found with this email.",
-    "auth/wrong-password":        "Incorrect password.",
-    "auth/email-already-in-use":  "An account with this email already exists.",
-    "auth/invalid-email":         "Please enter a valid email.",
-    "auth/too-many-requests":     "Too many attempts. Try again later.",
-    "auth/network-request-failed":"Network error. Check your connection.",
-    "auth/invalid-credential":    "Incorrect email or password.",
-  };
-  return map[code] || "Something went wrong. Please try again.";
-}
-
-// ---- Auth state flag ----
+// Redirect if already logged in (guard against firing during active login/register)
 let isAuthInProgress = false;
-
-// ---- Handle Google redirect result on page load ----
-(async () => {
-  try {
-    showLoader(true);
-    const result = await getRedirectResult(auth);
-    if (result?.user) {
-      isAuthInProgress = true;
-      const user = result.user;
-      const snap = await getDoc(doc(db, "users", user.uid));
-      if (!snap.exists()) {
-        const nameParts = (user.displayName || "").split(" ");
-        const firstName = nameParts[0] || "Member";
-        const lastName  = nameParts.slice(1).join(" ") || "";
-        await setDoc(doc(db, "users", user.uid), {
-          firstName,
-          lastName,
-          email:      user.email,
-          phone:      "",
-          membership: "monthly",
-          role:       "member",
-          avatarUrl:  user.photoURL || "",
-          createdAt:  serverTimestamp(),
-          memberId:   "360-" + user.uid.slice(0, 8).toUpperCase()
-        });
-      }
-      window.location.href = "pages/dashboard.html";
-      return;
-    }
-  } catch (err) {
-    showError(friendlyError(err.code));
-  } finally {
-    showLoader(false);
-  }
-})();
-
-// ---- Redirect already-logged-in users ----
 onAuthStateChanged(auth, (user) => {
   if (user && !isAuthInProgress) window.location.href = "pages/dashboard.html";
 });
@@ -128,6 +62,8 @@ window.handleRegister = async function() {
   try {
     const cred = await createUserWithEmailAndPassword(auth, email, password);
     const uid  = cred.user.uid;
+
+    // Create user profile in Firestore — must complete before redirecting
     await setDoc(doc(db, "users", uid), {
       firstName,
       lastName,
@@ -139,24 +75,12 @@ window.handleRegister = async function() {
       createdAt:  serverTimestamp(),
       memberId:   "360-" + uid.slice(0, 8).toUpperCase()
     });
+
     window.location.href = "pages/dashboard.html";
   } catch (err) {
     isAuthInProgress = false;
     showError(friendlyError(err.code));
     showLoader(false);
-  }
-};
-
-// ---- Google Sign-In ----
-window.handleGoogleSignIn = async function() {
-  isAuthInProgress = true;
-  try {
-    const provider = new GoogleAuthProvider();
-    await signInWithRedirect(auth, provider);
-    // Page redirects to Google — getRedirectResult() at top handles the rest on return
-  } catch (err) {
-    isAuthInProgress = false;
-    showError(friendlyError(err.code));
   }
 };
 
@@ -172,7 +96,33 @@ window.handleForgotPassword = async function() {
   }
 };
 
-// ---- Enter key to submit ----
+// ---- Helpers ----
+function showError(msg, isSuccess = false) {
+  const el = document.getElementById("authError");
+  el.textContent = msg;
+  el.className = isSuccess ? "auth-error" : "auth-error";
+  el.style.color = isSuccess ? "var(--success)" : "";
+  el.classList.remove("hidden");
+}
+function clearError() {
+  document.getElementById("authError").classList.add("hidden");
+}
+function showLoader(show) {
+  document.getElementById("authLoader").classList.toggle("hidden", !show);
+}
+function friendlyError(code) {
+  const map = {
+    "auth/user-not-found":     "No account found with this email.",
+    "auth/wrong-password":     "Incorrect password.",
+    "auth/email-already-in-use": "An account with this email already exists.",
+    "auth/invalid-email":      "Please enter a valid email.",
+    "auth/too-many-requests":  "Too many attempts. Try again later.",
+    "auth/network-request-failed": "Network error. Check your connection.",
+  };
+  return map[code] || "Something went wrong. Please try again.";
+}
+
+// Allow Enter key to submit
 document.addEventListener("keydown", (e) => {
   if (e.key === "Enter") {
     const isLogin = !document.getElementById("loginForm").classList.contains("hidden");
