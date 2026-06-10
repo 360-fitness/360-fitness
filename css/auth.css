@@ -134,4 +134,8 @@
 
 @media (max-width: 480px) {
   .auth-container { padding: 30px 24px; }
+  /* Ensure inputs never trigger iOS zoom */
+  .auth-form input {
+    font-size: 1rem;
+  }
 }
