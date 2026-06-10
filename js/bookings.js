@@ -6,7 +6,7 @@ import { requireAuth, formatDate, formatTime, showToast, getCurrentProfile } fro
 import {
   collection, query, where, getDocs, getDoc, doc,
   addDoc, updateDoc, increment, deleteDoc, serverTimestamp,
-  orderBy, onSnapshot, Timestamp
+  orderBy, Timestamp, limit
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 let currentUser, currentProfile, selectedDate;
@@ -166,7 +166,7 @@ window.openSessionModal = async function(sessionId) {
   const myBookDoc = bookSnap.docs.find(d => d.data().userId === currentUser.uid);
   const myWaitDoc = waitSnap.docs.find(d => d.data().userId === currentUser.uid);
   const actionsEl = document.getElementById("modalActions");
-  const pastSession = new Date(s.date + "T" + s.time) < new Date();
+  const pastSession = new Date(`${s.date}T${s.time}:00`) < new Date();
 
   if (pastSession) {
     actionsEl.innerHTML = `<span style="color:var(--text-muted);font-size:0.85rem">This session has passed.</span>`;
@@ -203,12 +203,12 @@ window.bookSession = async function(sessionId) {
       userLastName:  currentProfile.lastName,
       sessionId,
       sessionName:   s.name,
-      sessionDate:   Timestamp.fromDate(new Date(s.date + "T" + s.time)),
-      sessionDateStr: s.date,
-      sessionTime:   s.time,
+      sessionDate:     Timestamp.fromDate(new Date(`${s.date}T${s.time}:00`)),
+      sessionDateStr:  s.date,
+      sessionTime:     s.time,
       sessionDuration: s.duration,
-      status:        "booked",
-      createdAt:     serverTimestamp()
+      status:          "booked",
+      createdAt:       serverTimestamp()
     });
     await updateDoc(doc(db, "sessions", sessionId), { bookedCount: increment(1) });
     showToast("Session booked! See you there 💪", "success");
@@ -231,7 +231,7 @@ window.joinWaitlist = async function(sessionId) {
       userLastName:  currentProfile.lastName,
       sessionId,
       sessionName:   s.name,
-      sessionDate:   Timestamp.fromDate(new Date(s.date + "T" + s.time)),
+      sessionDate:   Timestamp.fromDate(new Date(`${s.date}T${s.time}:00`)),
       sessionDateStr: s.date,
       sessionTime:   s.time,
       sessionDuration: s.duration,
