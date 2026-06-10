@@ -307,6 +307,19 @@
   transition: var(--transition);
   min-width: 60px;
 }
+
+@media (max-width: 768px) {
+  .date-btn {
+    min-width: 48px;
+    padding: 8px 8px;
+  }
+  .date-num {
+    font-size: 1.2rem;
+  }
+  .date-day {
+    font-size: 0.6rem;
+  }
+}
 .date-btn:hover { border-color: var(--gold-dark); }
 .date-btn.active { background: var(--gold); border-color: var(--gold); }
 .date-day { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px; color: inherit; }
@@ -317,7 +330,17 @@
 .date-btn:not(.active) .date-num { color: var(--text-primary); }
 
 /* ---- Slots Grid ---- */
-.slots-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+.slots-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 14px;
+}
+
+@media (max-width: 768px) {
+  .slots-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
 .slot-card {
   background: var(--dark-3);
   border: 1.5px solid var(--dark-4);
@@ -665,11 +688,6 @@
   .stats-grid { grid-template-columns: 1fr 1fr; }
   .profile-layout { grid-template-columns: 1fr; }
   .form-row { grid-template-columns: 1fr; }
-  .slots-grid { grid-template-columns: 1fr; }
-
-  /* Larger touch targets on mobile */
-  .nav-link { padding: 14px 20px; }
-  .date-btn { min-width: 56px; padding: 10px 10px; }
 
   /* Modal full-width on small screens */
   .modal { padding: 12px; align-items: flex-end; }
