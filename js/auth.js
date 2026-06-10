@@ -8,15 +8,52 @@ import {
   sendPasswordResetEmail,
   onAuthStateChanged,
   GoogleAuthProvider,
-  signInWithPopup
+  signInWithRedirect,
+  getRedirectResult
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import {
   doc, setDoc, getDoc, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-// Redirect if already logged in
+// Handle redirect result when returning from Google sign-in
+let isAuthInProgress = false;
+
+(async () => {
+  try {
+    showLoader(true);
+    const result = await getRedirectResult(auth);
+    if (result?.user) {
+      const user = result.user;
+      const snap = await getDoc(doc(db, "users", user.uid));
+      if (!snap.exists()) {
+        const nameParts = (user.displayName || "").split(" ");
+        const firstName = nameParts[0] || "Member";
+        const lastName  = nameParts.slice(1).join(" ") || "";
+        await setDoc(doc(db, "users", user.uid), {
+          firstName,
+          lastName,
+          email:      user.email,
+          phone:      "",
+          membership: "monthly",
+          role:       "member",
+          avatarUrl:  user.photoURL || "",
+          createdAt:  serverTimestamp(),
+          memberId:   "360-" + user.uid.slice(0, 8).toUpperCase()
+        });
+      }
+      window.location.href = "pages/dashboard.html";
+      return;
+    }
+  } catch (err) {
+    showError(friendlyError(err.code));
+  } finally {
+    showLoader(false);
+  }
+})();
+
+// Redirect already-logged-in users
 onAuthStateChanged(auth, (user) => {
-  if (user) window.location.href = "pages/dashboard.html";
+  if (user && !isAuthInProgress) window.location.href = "pages/dashboard.html";
 });
 
 // ---- Tab Switching ----
@@ -34,10 +71,12 @@ window.handleLogin = async function() {
   const password = document.getElementById("loginPassword").value;
   if (!email || !password) return showError("Please fill in all fields.");
   showLoader(true);
+  isAuthInProgress = true;
   try {
     await signInWithEmailAndPassword(auth, email, password);
     window.location.href = "pages/dashboard.html";
   } catch (err) {
+    isAuthInProgress = false;
     showError(friendlyError(err.code));
     showLoader(false);
   }
@@ -57,6 +96,7 @@ window.handleRegister = async function() {
     return showError("Password must be at least 6 characters.");
 
   showLoader(true);
+  isAuthInProgress = true;
   try {
     const cred = await createUserWithEmailAndPassword(auth, email, password);
     const uid  = cred.user.uid;
@@ -83,38 +123,14 @@ window.handleRegister = async function() {
 
 // ---- Google Sign-In ----
 window.handleGoogleSignIn = async function() {
-  const provider = new GoogleAuthProvider();
   isAuthInProgress = true;
   try {
-    const cred = await signInWithPopup(auth, provider);
-    const user = cred.user;
-
-    // Check if Firestore profile already exists (returning Google user)
-    const snap = await getDoc(doc(db, "users", user.uid));
-    if (!snap.exists()) {
-      // New Google user — create their profile from Google account data
-      const nameParts = (user.displayName || "").split(" ");
-      const firstName = nameParts[0] || "Member";
-      const lastName  = nameParts.slice(1).join(" ") || "";
-      await setDoc(doc(db, "users", user.uid), {
-        firstName,
-        lastName,
-        email:      user.email,
-        phone:      "",
-        membership: "monthly",
-        role:       "member",
-        avatarUrl:  user.photoURL || "",
-        createdAt:  serverTimestamp(),
-        memberId:   "360-" + user.uid.slice(0, 8).toUpperCase()
-      });
-    }
-
-    window.location.href = "pages/dashboard.html";
+    const provider = new GoogleAuthProvider();
+    await signInWithRedirect(auth, provider);
+    // Page redirects to Google — getRedirectResult() at top handles the rest on return
   } catch (err) {
     isAuthInProgress = false;
-    if (err.code !== "auth/popup-closed-by-user") {
-      showError(friendlyError(err.code));
-    }
+    showError(friendlyError(err.code));
   }
 };
 window.handleForgotPassword = async function() {
