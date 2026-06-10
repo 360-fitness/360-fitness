@@ -12,9 +12,10 @@ import {
   doc, setDoc, getDoc, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-// Redirect if already logged in
+// Redirect if already logged in (guard against firing during active login/register)
+let isAuthInProgress = false;
 onAuthStateChanged(auth, (user) => {
-  if (user) window.location.href = "pages/dashboard.html";
+  if (user && !isAuthInProgress) window.location.href = "pages/dashboard.html";
 });
 
 // ---- Tab Switching ----
@@ -32,10 +33,12 @@ window.handleLogin = async function() {
   const password = document.getElementById("loginPassword").value;
   if (!email || !password) return showError("Please fill in all fields.");
   showLoader(true);
+  isAuthInProgress = true;
   try {
     await signInWithEmailAndPassword(auth, email, password);
     window.location.href = "pages/dashboard.html";
   } catch (err) {
+    isAuthInProgress = false;
     showError(friendlyError(err.code));
     showLoader(false);
   }
@@ -55,11 +58,12 @@ window.handleRegister = async function() {
     return showError("Password must be at least 6 characters.");
 
   showLoader(true);
+  isAuthInProgress = true;
   try {
     const cred = await createUserWithEmailAndPassword(auth, email, password);
     const uid  = cred.user.uid;
 
-    // Create user profile in Firestore
+    // Create user profile in Firestore — must complete before redirecting
     await setDoc(doc(db, "users", uid), {
       firstName,
       lastName,
@@ -74,6 +78,7 @@ window.handleRegister = async function() {
 
     window.location.href = "pages/dashboard.html";
   } catch (err) {
+    isAuthInProgress = false;
     showError(friendlyError(err.code));
     showLoader(false);
   }
