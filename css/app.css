@@ -657,15 +657,44 @@
   .mobile-header { display: flex; }
   .main-content {
     margin-left: 0;
-    padding: 80px 16px 24px;
+    padding: 76px 16px 32px;
+    /* Prevent any child from causing horizontal scroll */
+    overflow-x: hidden;
+    width: 100%;
   }
   .stats-grid { grid-template-columns: 1fr 1fr; }
   .profile-layout { grid-template-columns: 1fr; }
   .form-row { grid-template-columns: 1fr; }
   .slots-grid { grid-template-columns: 1fr; }
+
+  /* Larger touch targets on mobile */
+  .nav-link { padding: 14px 20px; }
+  .date-btn { min-width: 56px; padding: 10px 10px; }
+
+  /* Modal full-width on small screens */
+  .modal { padding: 12px; align-items: flex-end; }
+  .modal-box {
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    max-height: 85vh;
+    padding: 24px 20px;
+  }
+
+  /* Booking items wrap better on small screens */
+  .booking-item { flex-wrap: wrap; gap: 8px; }
+  .booking-time { min-width: auto; }
+
+  /* Table scroll on mobile */
+  .members-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+  /* Section header stacks */
+  .section-header { flex-direction: column; align-items: flex-start; gap: 12px; }
+  .section-header > * { width: 100%; }
+  .search-input { width: 100%; }
 }
 
 @media (max-width: 480px) {
-  .stats-grid { grid-template-columns: 1fr; }
-  .section-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .stats-grid { grid-template-columns: 1fr 1fr; }
+  .page-title { font-size: 1.6rem; }
+  .toast { min-width: unset; width: calc(100vw - 48px); }
+  #toastContainer { right: 16px; left: 16px; bottom: 16px; }
 }
