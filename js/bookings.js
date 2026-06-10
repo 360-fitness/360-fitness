@@ -6,7 +6,7 @@ import { requireAuth, formatDate, formatTime, showToast, getCurrentProfile } fro
 import {
   collection, query, where, getDocs, getDoc, doc,
   addDoc, updateDoc, increment, deleteDoc, serverTimestamp,
-  orderBy, Timestamp, limit
+  orderBy, onSnapshot, Timestamp
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 let currentUser, currentProfile, selectedDate;
@@ -75,6 +75,12 @@ async function loadSlots(dateStr) {
 
   listEl.className = "slots-grid";
   listEl.innerHTML = snap.docs.map(d => renderSlotCard(d, myBookings)).join("");
+
+  // Event delegation — handles clicks on any slot card
+  listEl.onclick = (e) => {
+    const card = e.target.closest(".slot-card");
+    if (card?.dataset.sessionId) openSessionModal(card.dataset.sessionId);
+  };
 }
 
 function renderSlotCard(d, myBookings) {
@@ -93,7 +99,7 @@ function renderSlotCard(d, myBookings) {
   const statusClass = isBooked ? "status-booked" : isWaitlisted ? "status-waitlist" : isFull ? "status-full" : "status-open";
 
   return `
-    <div class="slot-card ${cardClass}" onclick="openSessionModal('${sid}')">
+    <div class="slot-card ${cardClass}" data-session-id="${sid}">
       <span class="slot-type-badge">${s.type || "session"}</span>
       <span class="slot-status-pill ${statusClass}">${statusText}</span>
       <div class="slot-name">${s.name}</div>
@@ -166,27 +172,38 @@ window.openSessionModal = async function(sessionId) {
   const myBookDoc = bookSnap.docs.find(d => d.data().userId === currentUser.uid);
   const myWaitDoc = waitSnap.docs.find(d => d.data().userId === currentUser.uid);
   const actionsEl = document.getElementById("modalActions");
-  const pastSession = new Date(`${s.date}T${s.time}:00`) < new Date();
+  const pastSession = new Date(s.date + "T" + s.time) < new Date();
 
   if (pastSession) {
     actionsEl.innerHTML = `<span style="color:var(--text-muted);font-size:0.85rem">This session has passed.</span>`;
   } else if (myBookDoc) {
-    actionsEl.innerHTML = `<button class="btn-danger" onclick="cancelBooking('${myBookDoc.id}', '${sessionId}', false)">Cancel Booking</button>`;
+    actionsEl.innerHTML = `<button class="btn-danger" data-action="cancel" data-booking-id="${myBookDoc.id}" data-session-id="${sessionId}" data-waitlist="false">Cancel Booking</button>`;
   } else if (myWaitDoc) {
     actionsEl.innerHTML = `
       <span class="booking-status status-waitlist">On Waitlist</span>
-      <button class="btn-danger" onclick="cancelBooking('${myWaitDoc.id}', '${sessionId}', true)">Leave Waitlist</button>`;
+      <button class="btn-danger" data-action="cancel" data-booking-id="${myWaitDoc.id}" data-session-id="${sessionId}" data-waitlist="true">Leave Waitlist</button>`;
   } else if (booked >= max) {
-    actionsEl.innerHTML = `<button class="btn-secondary" onclick="joinWaitlist('${sessionId}')">Join Waitlist</button>`;
+    actionsEl.innerHTML = `<button class="btn-secondary" data-action="waitlist" data-session-id="${sessionId}">Join Waitlist</button>`;
   } else {
-    actionsEl.innerHTML = `<button class="btn-primary" style="width:auto;padding:12px 28px" onclick="bookSession('${sessionId}')">Book This Session</button>`;
+    actionsEl.innerHTML = `<button class="btn-primary" style="width:auto;padding:12px 28px" data-action="book" data-session-id="${sessionId}">Book This Session</button>`;
   }
 
   modal.classList.remove("hidden");
+
+  // Event delegation for modal action buttons
+  document.getElementById("modalActions").onclick = (e) => {
+    const btn = e.target.closest("button");
+    if (!btn) return;
+    const action    = btn.dataset.action;
+    const sessionId = btn.dataset.sessionId;
+    if (action === "book")    bookSession(sessionId);
+    if (action === "waitlist") joinWaitlist(sessionId);
+    if (action === "cancel")  cancelBooking(btn.dataset.bookingId, sessionId, btn.dataset.waitlist === "true");
+  };
 };
 
 // ---- Book Session ----
-window.bookSession = async function(sessionId) {
+async function bookSession(sessionId) {
   const sessDoc = await getDoc(doc(db, "sessions", sessionId));
   if (!sessDoc.exists()) return;
   const s      = sessDoc.data();
@@ -203,12 +220,12 @@ window.bookSession = async function(sessionId) {
       userLastName:  currentProfile.lastName,
       sessionId,
       sessionName:   s.name,
-      sessionDate:     Timestamp.fromDate(new Date(`${s.date}T${s.time}:00`)),
-      sessionDateStr:  s.date,
-      sessionTime:     s.time,
+      sessionDate:   Timestamp.fromDate(new Date(s.date + "T" + s.time)),
+      sessionDateStr: s.date,
+      sessionTime:   s.time,
       sessionDuration: s.duration,
-      status:          "booked",
-      createdAt:       serverTimestamp()
+      status:        "booked",
+      createdAt:     serverTimestamp()
     });
     await updateDoc(doc(db, "sessions", sessionId), { bookedCount: increment(1) });
     showToast("Session booked! See you there 💪", "success");
@@ -220,7 +237,7 @@ window.bookSession = async function(sessionId) {
 };
 
 // ---- Join Waitlist ----
-window.joinWaitlist = async function(sessionId) {
+async function joinWaitlist(sessionId) {
   const sessDoc = await getDoc(doc(db, "sessions", sessionId));
   if (!sessDoc.exists()) return;
   const s = sessDoc.data();
@@ -231,7 +248,7 @@ window.joinWaitlist = async function(sessionId) {
       userLastName:  currentProfile.lastName,
       sessionId,
       sessionName:   s.name,
-      sessionDate:   Timestamp.fromDate(new Date(`${s.date}T${s.time}:00`)),
+      sessionDate:   Timestamp.fromDate(new Date(s.date + "T" + s.time)),
       sessionDateStr: s.date,
       sessionTime:   s.time,
       sessionDuration: s.duration,
@@ -248,7 +265,7 @@ window.joinWaitlist = async function(sessionId) {
 };
 
 // ---- Cancel Booking ----
-window.cancelBooking = async function(bookingId, sessionId, isWaitlist) {
+async function cancelBooking(bookingId, sessionId, isWaitlist) {
   if (!confirm("Cancel this booking?")) return;
   try {
     await deleteDoc(doc(db, "bookings", bookingId));
