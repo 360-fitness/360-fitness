@@ -385,7 +385,12 @@ window.generateSessions = async function() {
     const date = new Date(today);
     date.setDate(today.getDate() + d);
     const dow     = date.getDay(); // 0=Sun,1=Mon,...,6=Sat
-    const dateStr = date.toISOString().split("T")[0];
+    // Build dateStr from local time (not UTC) to avoid timezone shift in UTC+2
+    const dateStr = [
+      date.getFullYear(),
+      String(date.getMonth() + 1).padStart(2, "0"),
+      String(date.getDate()).padStart(2, "0")
+    ].join("-");
 
     let templates = null;
     if (dow >= 1 && dow <= 4) templates = SESSION_TEMPLATES.weekday;
