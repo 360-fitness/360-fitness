@@ -262,6 +262,7 @@
   font-weight: 700;
   color: var(--gold);
   border: 1px solid var(--dark-5);
+  flex-shrink: 0;
 }
 .booking-info { flex: 1; min-width: 0; }
 .booking-name { font-weight: 600; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -274,13 +275,44 @@
   border-radius: 20px;
   text-transform: uppercase;
   white-space: nowrap;
+  flex-shrink: 0;
 }
-.status-booked { background: rgba(201,168,76,0.15); color: var(--gold); }
-.status-waitlist { background: rgba(255,152,0,0.15); color: var(--warning); }
-.status-past { background: rgba(255,255,255,0.06); color: var(--text-muted); }
-.status-cancelled { background: rgba(244,67,54,0.1); color: var(--danger); }
-.status-full { background: rgba(244,67,54,0.1); color: var(--danger); }
-.status-open { background: rgba(76,175,80,0.1); color: var(--success); }
+
+@media (max-width: 768px) {
+  .booking-item {
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .booking-time {
+    min-width: 80px;
+  }
+  .booking-info {
+    flex: 1;
+    min-width: 0;
+  }
+  .booking-name {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: unset;
+  }
+  .booking-status {
+    margin-left: auto;
+  }
+  .booking-item .btn-sm {
+    width: 100%;
+    padding: 8px;
+    font-size: 0.85rem;
+    text-align: center;
+  }
+}
+
+.status-booked    { background: rgba(201,168,76,0.15); color: var(--gold); }
+.status-waitlist  { background: rgba(255,152,0,0.15);  color: var(--warning); }
+.status-past      { background: rgba(255,255,255,0.06); color: var(--text-muted); }
+.status-cancelled { background: rgba(244,67,54,0.1);   color: var(--danger); }
+.status-full      { background: rgba(244,67,54,0.1);   color: var(--danger); }
+.status-open      { background: rgba(76,175,80,0.1);   color: var(--success); }
 
 /* ---- Date Scroller ---- */
 .date-scroller {
