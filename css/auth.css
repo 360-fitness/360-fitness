@@ -139,3 +139,42 @@
     font-size: 1rem;
   }
 }
+
+/* ---- Google Sign-In Button ---- */
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 16px 0;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--dark-5);
+}
+
+.btn-google {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 20px;
+  background: var(--dark-3);
+  color: var(--text-primary);
+  border: 1.5px solid var(--dark-5);
+  border-radius: var(--radius-md);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  font-family: inherit;
+}
+.btn-google:hover {
+  background: var(--dark-4);
+  border-color: var(--text-muted);
+}
